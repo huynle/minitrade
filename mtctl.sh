@@ -1,49 +1,55 @@
 #!/bin/bash
+# execute this script
+# docker run -it -p 8501:8501 -v ~/.minitrade:/root/.minitrade minitrade:latest
 
 # take 1 argument
 if [ $# -ne 1 ]; then
-    echo "Usage: $0 <start|stop|restart|status>"
-    exit 1
+	echo "Usage: $0 <start|stop|restart|status>"
+	exit 1
 fi
 
 # if argument is stop or restart, kill all minitrade processes
 if [ $1 == "stop" ] || [ $1 == "restart" ]; then
-    pkill -f "minitrade "
-    sleep 2
-    if pgrep -f "minitrade " > /dev/null; then
-        pgrep -fla "minitrade " | awk '{print $1, $4, "not stopped"}'
-        exit 1
-    else
-        echo "Minitrade stopped"
-    fi
-    [ -f nohup.out ] && mv nohup.out nohup.out.old
+	pkill -f "minitrade "
+	sleep 2
+	if pgrep -f "minitrade " >/dev/null; then
+		pgrep -fla "minitrade " | awk '{print $1, $4, "not stopped"}'
+		exit 1
+	else
+		echo "Minitrade stopped"
+	fi
+	[ -f nohup.out ] && mv nohup.out nohup.out.old
+fi
+
+if [ ! -d "$HOME/.minitrade" ] || [ -z "$(ls -A $HOME/.minitrade)" ]; then
+	minitrade init
 fi
 
 # if argument is start or restart, start all minitrade processes
 if [ $1 == "start" ] || [ $1 == "restart" ]; then
-    nohup minitrade scheduler start < /dev/null > minitrade.log 2>&1 &
-    nohup minitrade ib start < /dev/null > minitrade.log 2>&1 &
-    # wait for scheduler/ib to finish launching before starting web
-    sleep 3
-    nohup minitrade web start < /dev/null > minitrade.log 2>&1 &
-    sleep 1
-    pgrep -fla "minitrade " | awk '{print $1, $4, "started"}'
+	nohup minitrade scheduler start </dev/null >minitrade.log 2>&1 &
+	nohup minitrade ib start </dev/null >minitrade.log 2>&1 &
+	# wait for scheduler/ib to finish launching before starting web
+	sleep 3
+	nohup minitrade web start </dev/null >minitrade.log 2>&1 &
+	sleep 1
+	pgrep -fla "minitrade " | awk '{print $1, $4, "started"}'
 fi
 
 # if argument is status, print which minitrade processes are running
 if [ $1 == "status" ]; then
-    if pgrep -f "minitrade " > /dev/null; then
-        echo "Minitrade is running"
-        pgrep -fla "minitrade " | awk '{print $1, $4}'
-    else
-        echo "Minitrade is not running"
-    fi
+	if pgrep -f "minitrade " >/dev/null; then
+		echo "Minitrade is running"
+		pgrep -fla "minitrade " | awk '{print $1, $4}'
+	else
+		echo "Minitrade is not running"
+	fi
 fi
 
 # check if run in docker
 if [ -f /.dockerenv ]; then
-    # Wait for any process to exit
-    wait -n
-    # Exit with status of process that exited first
-    exit $?
+	# Wait for any process to exit
+	wait -n
+	# Exit with status of process that exited first
+	exit $?
 fi
