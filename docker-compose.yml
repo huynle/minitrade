@@ -8,28 +8,5 @@ services:
     container_name: minitrader
     ports:
       - 8501:8501
-    restart: unless-stopped
     volumes:
-      - /var/data/minitrade/.minitrade:/root/.minitrade
-      # - ./mtctl.sh:/root/mtctl.sh
-    # entrypoint:
-    #   - minitrade
-    #   - init
-    networks:
-      - traefik-public
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.minitrader-rtr.entrypoints=https"
-      - "traefik.http.routers.minitrader-rtr.rule=Host(`trade.huynle.com`)"
-      - "traefik.http.routers.minitrader-rtr.tls=true"
-      - "traefik.http.routers.minitrader-rtr.tls.certresolver=letsencrypt"
-      ## Middlewares
-      - "traefik.http.routers.minitrader-rtr.middlewares=secure-chain-huynle@file"
-      ## HTTP Services
-      - "traefik.http.routers.minitrader-rtr.service=minitrader-svc"
-      - "traefik.http.services.minitrader-svc.loadbalancer.server.port=8501"
-# docker run -d -p 3000:8080 --name ollama-webui --restart always ollama-webui
-networks:
-  traefik-public:
-    external: true
+      - ~/.minitrade:/root/.minitrade
